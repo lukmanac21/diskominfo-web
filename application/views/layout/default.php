@@ -9,10 +9,10 @@
     <div class="layout">
         <div class="vertical-layout">
             <!-- Header START -->
-			<?php $this->load->view('layout/header');?>
+			<?php $this->load->view('layout//header');?>
             <!-- Header END -->
             <!-- Side Nav START -->
-			<?php $this->load->view('layout/sidebar');?>
+			<?php $this->load->view('layout//sidebar');?>
             <!-- Side Nav END -->
 			<div class="content">
 			<?php echo $content_for_layout; ?>
