@@ -1,0 +1,255 @@
+<!-- <script type="text/javascript">
+    $(document).ready(function(){
+        var site = "<?php echo site_url();?>";
+        var peg_id = $('[name = "pegawai_id"]').val();
+        var satker_id = $('[name = "satker_id"]').val();
+        autocomplete();
+        autocomplete_kualifikasi();
+        CKEDITOR.replace('pend_dan_pel', {resize_enabled : false});
+        CKEDITOR.replace('pengalaman_kerja', {resize_enabled : false});
+        CKEDITOR.replace('prestasi', {resize_enabled : false});
+        CKEDITOR.replace('keterampilan', {resize_enabled : false});
+        $('#tab-jabatan').on('shown.bs.tab', function (e) {
+            e.preventDefault()
+            $.ajax({
+                type: 'post',  
+                url: site + 'anjab/formulir_anjab/get_form_jabatan',
+                data: {peg_id: peg_id, satker_id: satker_id},
+                dataType: 'json',       
+                success: function(response){
+                    if(response != null){
+                        $('[name = "nama_jabatan"]').val(response.nama_jabatan); 
+                        $('[name = "kode_jabatan"]').val(response.kode_jabatan);
+                        $('[name = "ikhtisar"]').val(response.ikhtisar_jabatan);
+                        $('[name = "kelas_jabatan"]').val(response.kelas_jabatan);              
+                    }                    
+                } 
+            });
+            $('#con-jabatan').tab('show')
+        })
+
+        $('#tab-tugas').on('shown.bs.tab', function (e) {
+            var kode_jab = $('[name = "saved_kode_jab"]').val();
+            e.preventDefault()
+            $.ajax({
+                type: 'post',  
+                url: site + 'anjab/formulir_anjab/get_form_tugas',
+                data: {peg_id: peg_id, satker_id: satker_id, kode: kode_jab},
+                dataType: 'html',       
+                success: function(data){
+                    $('#table_tugas').html(data);                      
+                } 
+            });
+            $('#con-tugas').tab('show')
+        })
+
+        $('#tab-hasilkerja').on('shown.bs.tab', function (e) {
+            var kode_jab = $('[name = "saved_kode_jab"]').val();
+            e.preventDefault()
+            $.ajax({
+                type: 'post',  
+                url: site + 'anjab/formulir_anjab/get_form_hasilkerja',
+                data: {peg_id: peg_id, satker_id: satker_id, kode: kode_jab},
+                dataType: 'html',       
+                success: function(data){
+                    $('#table_hasilkerja').html(data);                      
+                } 
+            });
+            $('#con-hasilkerja').tab('show')
+        })
+
+        $('#tab-bahankerja').on('shown.bs.tab', function (e) {
+            var kode_jab = $('[name = "saved_kode_jab"]').val();
+            e.preventDefault()
+            $.ajax({
+                type: 'post',  
+                url: site + 'anjab/formulir_anjab/get_form_bahankerja',
+                data: {peg_id: peg_id, satker_id: satker_id, kode: kode_jab},
+                dataType: 'html',       
+                success: function(data){
+                    $('#table_bahankerja').html(data);                      
+                } 
+            });
+            $('#con-bahan').tab('show')
+        })
+
+        $('.modal').on('hidden.bs.modal', function () {
+            $(this).find("input,textarea,select").val('').end();
+        });
+    });
+
+    function autocomplete(){
+        var kode = ''; var ikhtisar = '';
+        $('#nama_jabatan').autoComplete({
+            minChars: 3,
+            source: function(term, suggest){
+                term = term.toLowerCase();
+                var site = "<?php echo site_url();?>";
+                var data = [];
+                $.ajax({
+                    type: 'get',  
+                    url: site + 'anjab/formulir_anjab/autocomplete',
+                    data: {key: term},
+                    dataType: 'json',       
+                    success: function(response){
+                        var suggestions    = [];
+                        for (i = 0; i < response.length; i++) {
+                            if (~ response[i].nama.toLowerCase().indexOf(term)){
+                                suggestions.push(response[i].nama);
+                                kode = response[i].kode;  
+                                ikhtisar = response[i].ikhtisar; 
+                            }
+                        }
+                        suggest(suggestions);
+                    } 
+                 });
+            },
+            onSelect: function (event, ui) {
+                $('#kode_jabatan').val(kode);
+                $('#ikhtisar').val(ikhtisar);
+            }
+        });
+    }
+
+    function autocomplete_kualifikasi(){
+        var site = "<?php echo site_url();?>";
+        $("#pend_formal").select2({
+            ajax: {
+                url: site + 'anjab/formulir_anjab/autocomplete_kualifikasi',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                text: item.text,
+                                id: item.id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 3,
+            language: { 
+                inputTooShort: function () { return 'Ketikan 3 Karakter Pertama, ex : s-1 atau d-iii';},
+                noResults: function () {return 'Tidak Ada Hasil';}
+
+            },
+            multiple:true,
+            placeholder: 'Pilih ..',
+            autoClear: true
+        });
+        
+    }
+
+    function notif(tipe, pesan){
+        var icon = '';
+        if(tipe == 'success'){
+            icon = 'fa fa-check';
+        }else if(tipe == 'danger'){
+            icon = 'fa fa-times';
+        }else{
+            icon = 'fa fa-warning';
+        }
+        $.notify({
+        icon: icon,
+        message: pesan
+        },{
+            type: tipe,
+            placement: {
+                from: 'top',
+                align: 'center'
+            },
+        });
+    }
+
+    function akhiri_pengisian(){
+        if(confirm('APAKAH ANDA YAKIN MENGAKHIRI PENGISIAN?') == true){
+            notif('success', 'JOSSSH GANDOOOOSSSSHH!!');
+        }
+    }
+
+    function simpan_jabatan(){
+        var site = "<?php echo site_url();?>";
+        var peg_id = $('[name = "pegawai_id"]').val();
+        var satker_id = $('[name = "satker_id"]').val();
+        var nama_jab = $('[name = "nama_jabatan"]').val();
+        var kode_jab = $('[name = "kode_jabatan"]').val();
+        var ikhtisar = $('[name = "ikhtisar"]').val();
+        var kelas_jab = $('[name = "kelas_jabatan"]').val();
+        $.ajax({
+            type: 'post',  
+            url: site + 'anjab/formulir_anjab/simpan_jabatan',
+            data: {peg_id: peg_id, satker_id: satker_id, nama_jabatan: nama_jab, kode_jabatan: kode_jab, ikhtisar: ikhtisar, kelas_jabatan: kelas_jab},
+            dataType: 'json',       
+            success: function(response){
+                if(response == 1){
+                    notif('success', 'Berhasil Simpan Data Jabatan');
+                    $('[name = "saved_kode_jab"]').val(kode_jab);
+                }else if(response == '0'){
+                    notif('danger', 'Gagal Simpan Data Jabatan');
+                }else{
+                    notif('warning', 'Harap Lengkapi Data');
+                }
+                
+            } 
+        });
+    }
+
+    function simpan_bahankerja(){
+        var kode_jab = $('[name = "saved_kode_jab"]').val();
+        var site = "<?php echo site_url();?>";
+        var peg_id = $('[name = "pegawai_id"]').val();
+        var bahan = $('[name = "bahan_kerja"]').val();
+        var penggunaan = $('[name = "penggunaan"]').val();
+        $.ajax({
+            type: 'post',  
+            url: site + 'anjab/formulir_anjab/simpan_bahankerja',
+            data: {peg_id: peg_id, kode_jabatan: kode_jab, bahan: bahan, penggunaan: penggunaan},
+            dataType: 'json',       
+            success: function(response){
+                if(response.status == 1){
+                    notif('success', 'Berhasil Simpan Bahan Kerja');
+                    $('#mod_bahankerja').modal('hide'); 
+                    $('#table_bahankerja').html(response.isi);       
+                }else if(response.status == '0'){
+                    notif('danger', 'Gagal Simpan Bahan Kerja');
+                    $('#mod_bahankerja').modal('hide'); 
+                    $('#table_bahankerja').html(response.isi); 
+                }else{
+                    notif('warning', 'Harap Lengkapi Data');
+                    $('#mod_bahankerja').modal('hide'); 
+                }
+                
+            } 
+        });
+    }
+
+    function delete_bahankerja(id){
+        var kode_jab = $('[name = "saved_kode_jab"]').val();
+        var site = "<?php echo site_url();?>";
+        var peg_id = $('[name = "pegawai_id"]').val();
+       $.ajax({
+            type: 'post',  
+            url: site + 'anjab/formulir_anjab/delete_bahankerja',
+            data: {id: id, peg_id: peg_id, kode_jabatan: kode_jab},
+            dataType: 'json',       
+            success: function(response){
+                if(response.status == 1){
+                    notif('success', 'Berhasil Hapus Bahan Kerja');
+                    $('#table_bahankerja').html(response.isi);       
+                }else{
+                    notif('danger', 'Gagal Hapus Bahan Kerja');
+                    $('#table_bahankerja').html(response.isi); 
+                }                    
+            } 
+        });
+    }
+    
+</script> -->
